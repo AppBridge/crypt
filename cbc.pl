@@ -70,7 +70,7 @@ sub check_output {
                 last if substr($text,$cont,1) ne substr($EXPECTED,$cont,1);
             }
             print "\n";
-            print "Són iguals fins al caràcter $cont\n";
+            print "Són iguals fins al caràcter $cont de ".length($EXPECTED)."\n";
             print "text:\n$text\nesperat:\n$EXPECTED\n";
         }
     } else {
