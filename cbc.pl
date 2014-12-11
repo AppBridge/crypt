@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 
-use Crypt::CBC;
+#use Crypt::CBC;
 use Crypt::Mode::CBC;
 
 # key length has to be valid key size for this cipher
@@ -26,11 +26,11 @@ sub crypt_mode {
     check_output( bin2hex($crypt));
 }
 
-sub crypt_cbc {
-    print "Crypt::CBC\n";
-    my $cipher = Crypt::CBC->new( -key    => $KEY);
-    check_output(bin2hex($cipher->encrypt($CADENA)));
-}
+#sub crypt_cbc {
+#    print "Crypt::CBC\n";
+#    my $cipher = Crypt::CBC->new( -key    => $KEY);
+#    check_output(bin2hex($cipher->encrypt($CADENA)));
+#}
 
 
 sub bin2hex {
