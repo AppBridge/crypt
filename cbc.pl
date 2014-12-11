@@ -10,7 +10,7 @@ use Crypt::Mode::CBC;
 my $KEY =  '55a51621a6648525';
 
 # això m'ho invento, necessitem el iv
-my  $IV = '1234567890123456';  # 16 bytes
+my  $IV = $KEY;
 
 my $CADENA ='VendorTxCode=TxCode-1310917599-223087284&Amount=36.95&Currency=GBP&Description=description&CustomerName=FnameSurname&CustomerEMail=customer@example.com&BillingSurname=Surname&BillingFirstnames=Fname&BillingAddress1=BillAddress Line 1&BillingCity=BillCity&BillingPostCode=W1A1BL&BillingCountry=GB&BillingPhone=447933000000&DeliveryFirstnames=Fname&DeliverySurname=Surname&DeliveryAddress1=BillAddress Line 1&DeliveryCity=BillCity&DeliveryPostCode=W1A1BL&DeliveryCountry=GB&DeliveryPhone=447933000000&SuccessURL=https://example.com/success&FailureURL=https://example.co/failure';
 
@@ -74,4 +74,4 @@ sub check_output {
 
 init_expected_text();
 crypt_mode();
-crypt_cbc();
+#crypt_cbc();
