@@ -3,8 +3,8 @@
 use warnings;
 use strict;
 
+use Crypt::CBC;
 use Crypt::Mode::CBC;
-use MIME::Base64;
 
 # key length has to be valid key size for this cipher
 my $KEY =  '55a51621a6648525';
@@ -12,7 +12,7 @@ my $KEY =  '55a51621a6648525';
 # això m'ho invento, necessitem el iv
 my  $IV = '1234567890123456';  # 16 bytes
 
-my $CADENA ='VendorTxCode=TxCode-1310917599-223087284&Amount=36.95&Currency=GBP&Description=description&CustomerName=Fname Surname&CustomerEMail=customer@example.com&BillingSurname=Surname&BillingFirstnames=Fname&BillingAddress1=BillAddress Line 1&BillingCity=BillCity&BillingPostCode=W1A1BL&BillingCountry=GB&BillingPhone=447933000000&DeliveryFirstnames=Fname&DeliverySurname=Surname&DeliveryAddress1=BillAddress Line 1&DeliveryCity=BillCity&DeliveryPostCode=W1A1BL&DeliveryCountry=GB&DeliveryPhone=447933000000&SuccessURL=https://example.com/success&FailureURL=https://example.co/failure';
+my $CADENA ='VendorTxCode=TxCode-1310917599-223087284&Amount=36.95&Currency=GBP&Description=description&CustomerName=FnameSurname&CustomerEMail=customer@example.com&BillingSurname=Surname&BillingFirstnames=Fname&BillingAddress1=BillAddress Line 1&BillingCity=BillCity&BillingPostCode=W1A1BL&BillingCountry=GB&BillingPhone=447933000000&DeliveryFirstnames=Fname&DeliverySurname=Surname&DeliveryAddress1=BillAddress Line 1&DeliveryCity=BillCity&DeliveryPostCode=W1A1BL&DeliveryCountry=GB&DeliveryPhone=447933000000&SuccessURL=https://example.com/success&FailureURL=https://example.co/failure';
 
 my $FILE_EXPECTED = 'expected.txt';
 my ($EXPECTED,$EXPECTED_START);
@@ -20,11 +20,18 @@ my ($EXPECTED,$EXPECTED_START);
 ###################################################################################
 
 sub crypt_mode {
+    print "Crypt::Mode::CBC\n";
     my $cipher = Crypt::Mode::CBC->new('AES');
     my $crypt = $cipher->encrypt($CADENA, $KEY ,$IV);
-    my $hex = bin2hex($crypt);
-    check_output($hex);
+    check_output( bin2hex($crypt));
 }
+
+sub crypt_cbc {
+    print "Crypt::CBC\n";
+    my $cipher = Crypt::CBC->new( -key    => $KEY);
+    check_output(bin2hex($cipher->encrypt($CADENA)));
+}
+
 
 sub bin2hex {
     my $bin = shift;
@@ -57,11 +64,14 @@ sub check_output {
             print "ERROR. No coincideix\ntext:\n$text\nesperat:\n$EXPECTED\n";
         }
     } else {
+        $text = substr($text,0,30)." ... ";
         print "ERROR. Hauria de començar per $EXPECTED_START\n$text\n";
     }
+    print "\n";
 }
 
 ####################################################
 
 init_expected_text();
 crypt_mode();
+crypt_cbc();
