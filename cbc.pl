@@ -61,7 +61,17 @@ sub check_output {
         if ($text eq $EXPECTED) {
             print "OK tot.\n" 
         } else {
-            print "ERROR. No coincideix\ntext:\n$text\nesperat:\n$EXPECTED\n";
+            print "ERROR. No coincideix\n";
+            my $min_length = length($text);
+            $min_length = length($EXPECTED) if length($EXPECTED)<length($text);
+            my $cont;
+            for ($cont=0;$cont<=$min_length;$cont++) {
+                print substr($text,$cont,1);
+                last if substr($text,$cont,1) ne substr($EXPECTED,$cont,1);
+            }
+            print "\n";
+            print "Són iguals fins al caràcter $cont\n";
+            print "text:\n$text\nesperat:\n$EXPECTED\n";
         }
     } else {
         $text = substr($text,0,30)." ... ";
