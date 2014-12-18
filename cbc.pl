@@ -4,94 +4,88 @@ use warnings;
 use strict;
 
 use Crypt::CBC;
-use Crypt::Mode::CBC;
-use Digest::HMAC;
-use Digest::SHA qw(hmac_sha256_hex);
+#use Crypt::Mode::CBC;
+use DBI;
 
 # key length has to be valid key size for this cipher
 my $KEY =  '55a51621a6648525';
-
-# això m'ho invento, necessitem el iv
 my  $IV = $KEY;
-
-my $CADENA ='VendorTxCode=TxCode-1310917599-223087284&Amount=36.95&Currency=GBP&Description=description&CustomerName=Fname Surname&CustomerEMail=customer@example.com&BillingSurname=Surname&BillingFirstnames=Fname&BillingAddress1=BillAddress Line 1&BillingCity=BillCity&BillingPostCode=W1A1BL&BillingCountry=GB&BillingPhone=447933000000&DeliveryFirstnames=Fname&DeliverySurname=Surname&DeliveryAddress1=BillAddress Line 1&DeliveryCity=BillCity&DeliveryPostCode=W1A1BL&DeliveryCountry=GB&DeliveryPhone=447933000000&SuccessURL=https://example.com/success&FailureURL=https://example.co/failure';
-
-my $FILE_EXPECTED = 'expected.txt';
-my ($EXPECTED,$EXPECTED_START);
+my $DBH;
 
 ###################################################################################
 
-sub crypt_mode {
-    print "Crypt::Mode::CBC\n";
-    my $cipher = Crypt::Mode::CBC->new('AES');
-    my $crypt = $cipher->encrypt($CADENA, $KEY ,$IV);
-    check_output( bin2hex($crypt));
+#sub crypt_mode {
+#    print "Crypt::Mode::CBC\n";
+#    my $cipher = Crypt::Mode::CBC->new('AES');
+#    my $crypt = $cipher->encrypt($CADENA, $KEY ,$IV);
+#    return bin2hex($crypt);
+#}
+
+sub get_text {
+    my %vars = @ARGV;
+    my $ret = '';
+    for (sort keys %vars) {
+        $ret .= '&' if $ret;
+        $ret .= "$_=$vars{$_}";
+    }
+    die $ret;
+    return $ret;
 }
 
 sub crypt_cbc {
-    print "Crypt::CBC\n";
-    my $cipher = Crypt::CBC->new( -key    => $KEY
-        , -iv => $KEY
+    my $text = get_text();
+    my $cipher = Crypt::CBC->new( 
+          -key => $KEY
+        , -iv  => $KEY
         , -cipher => 'OpenSSL::AES'
         , -literal_key => 1
         , -header => 'none'
         , -keysize => 16
     );
-    my $encrypted = $cipher->encrypt($CADENA);
+    my $encrypted = $cipher->encrypt($text);
 #    my $base64 = encode_base64($encrypted);
-    check_output(bin2hex($encrypted));
+    return bin2hex($encrypted);
 }
 
 
 sub bin2hex {
     my $bin = shift;
     my $out = '';
-    for (split //,$bin)
-    {
+    for (split //,$bin) {
         $out .= uc(sprintf("%02lx", ord $_));
     }
     return $out;
 }
 
-sub init_expected_text {
-    open my $in,'<',$FILE_EXPECTED or die "$! $FILE_EXPECTED";
-
-    $EXPECTED ='';
-    while (<$in>) {
-        chomp;
-        $EXPECTED .= $_;
-    }
-    ($EXPECTED_START) = $EXPECTED =~ m{(^.{10})};
+sub init_dbh {
+    my ($user,$pass) = get_user_pass();
 }
 
-sub check_output {
-    my $text = shift;
-    if ($text =~ /^$EXPECTED_START/) {
-        print "Té bona pinta, comença igual\n";
-        if ($text eq $EXPECTED) {
-            print "OK tot.\n" 
-        } else {
-            print "ERROR. No coincideix\n";
-            my $min_length = length($text);
-            $min_length = length($EXPECTED) if length($EXPECTED)<length($text);
-            my $cont;
-            for ($cont=0;$cont<=$min_length;$cont++) {
-                print substr($text,$cont,1);
-                last if substr($text,$cont,1) ne substr($EXPECTED,$cont,1);
-            }
-            print "\n";
-            print "Són iguals fins al caràcter $cont de ".length($EXPECTED)."\n";
-            print "text:\n$text\nesperat:\n$EXPECTED\n";
-        }
-    } else {
-        $text = substr($text,0,30)." ... ";
-        print "ERROR. Hauria de començar per $EXPECTED_START\n$text\n";
+sub get_user_pass {
+    my @user = getpwuid($>);
+    my $home = $user[7];
+
+    my %result;
+    open my $cnf,'<',"$home/.my.cnf" or return($user[0],'');
+    my $client=0;
+    while (<$cnf>) {
+        s/^\s+//;
+        chomp;
+        last if $client && /^\[/;
+        $client++ if /^\[client/;
+        next if !$client;
+        my ($name,$value) = /^(.*?)\s*=\s*(.*)/;
+        $result{$name} = $value if $name && $value;
+        last if $result{user} && $result{pass};
     }
-    print "\n";
+    close $cnf;
+    $result{user} = $user[0]    if !$result{user};
+    $result{pass} = ''          if !$result{pass};
+    return ($result{user}, $result{pass});
 }
 
 ####################################################
 
-init_expected_text();
-crypt_mode();
+my $ID = shift @ARGV or die "$0 id\n";
+init_dbh();
 crypt_cbc();
