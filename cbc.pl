@@ -3,8 +3,10 @@
 use warnings;
 use strict;
 
-#use Crypt::CBC;
+use Crypt::CBC;
 use Crypt::Mode::CBC;
+use Digest::HMAC;
+use Digest::SHA qw(hmac_sha256_hex);
 
 # key length has to be valid key size for this cipher
 my $KEY =  '55a51621a6648525';
@@ -26,11 +28,19 @@ sub crypt_mode {
     check_output( bin2hex($crypt));
 }
 
-#sub crypt_cbc {
-#    print "Crypt::CBC\n";
-#    my $cipher = Crypt::CBC->new( -key    => $KEY);
-#    check_output(bin2hex($cipher->encrypt($CADENA)));
-#}
+sub crypt_cbc {
+    print "Crypt::CBC\n";
+    my $cipher = Crypt::CBC->new( -key    => $KEY
+        , -iv => $KEY
+        , -cipher => 'OpenSSL::AES'
+        , -literal_key => 1
+        , -header => 'none'
+        , -keysize => 16
+    );
+    my $encrypted = $cipher->encrypt($CADENA);
+#    my $base64 = encode_base64($encrypted);
+    check_output(bin2hex($encrypted));
+}
 
 
 sub bin2hex {
@@ -84,4 +94,4 @@ sub check_output {
 
 init_expected_text();
 crypt_mode();
-#crypt_cbc();
+crypt_cbc();
