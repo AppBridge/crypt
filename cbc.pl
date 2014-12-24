@@ -6,10 +6,8 @@ use strict;
 use eBD::Process;
 
 use Crypt::CBC;
-use Crypt::Mode::CBC;
-use Data::Dumper;
-use Digest::HMAC;
-use Digest::SHA qw(hmac_sha256_hex);
+#use Crypt::Mode::CBC;
+use DBI;
 
 # key length has to be valid key size for this cipher
 my $TABLE = 'compra';
@@ -53,8 +51,7 @@ sub crypt_cbc {
 sub bin2hex {
     my $bin = shift;
     my $out = '';
-    for (split //,$bin)
-    {
+    for (split //,$bin) {
         $out .= uc(sprintf("%02lx", ord $_));
     }
     return $out;
