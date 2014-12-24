@@ -10,9 +10,11 @@ alguna de la eBD millor fer-ho amb el perl del sistema
 Assegura't no estar executant això amb el perl de la eBD, per exemple pots
 fer en comptes de:
 
-perl Makefile.PL
+  perl Makefile.PL
 
-/usr/bin/perl Makefile.PL
+fes:
+
+  /usr/bin/perl Makefile.PL
 
 i en comptes de cpan, /usr/bin/cpan
 
